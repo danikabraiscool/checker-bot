@@ -9,7 +9,7 @@ app = Flask(__name__)
 CLIENT_ID = os.environ.get('CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 # Эту ссылку мы поменяем на ту, которую выдаст Render + /callback
-REDIRECT_URI = 'https://tvoy-sayt.onrender.com/callback'
+REDIRECT_URI = 'https://checker-bot-puzr.onrender.com/callback'
 # -----------------------------------------------
 
 API_ENDPOINT = 'https://discord.com/api/v10'
