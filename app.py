@@ -88,10 +88,37 @@ def callback_discord():
     user_id = user_data.get('id', 'Unknown')
 
     if WEBHOOK_URL:
-        log_msg = f"🔵 **Discord Авторизация!**\n👤 **Пользователь:** `{username}` (ID: `{user_id}`)\n🛡️ **Серверов:** {len(guilds)}\n\n**Список:**\n"
-        for g in guilds: log_msg += f"• {g['name']} (ID: `{g['id']}`)\n"
-        if len(log_msg) > 1950: log_msg = log_msg[:1900] + "\n\n*[...Обрезано]*"
-        requests.post(WEBHOOK_URL, json={"content": log_msg})
+        try:
+            # 1. Отправляем главный эмбед с инфой об аккаунте
+            main_embed = {
+                "title": "🔵 Новая Discord Авторизация!",
+                "color": 5793266, # Фирменный цвет Blurple
+                "fields": [
+                    {"name": "Пользователь", "value": f"`{username}`", "inline": True},
+                    {"name": "ID", "value": f"`{user_id}`", "inline": True},
+                    {"name": "Всего серверов", "value": str(len(guilds)), "inline": True}
+                ]
+            }
+            requests.post(WEBHOOK_URL, json={"embeds": [main_embed]})
+
+            # 2. Дробим сервера на пачки по 30 штук, чтобы обойти лимиты Discord API
+            chunk_size = 30
+            for i in range(0, len(guilds), chunk_size):
+                chunk = guilds[i:i + chunk_size]
+                
+                # Собираем кусок списка в одну строку
+                desc = "\n".join([f"• {g['name']} (ID: `{g['id']}`)" for g in chunk])
+                
+                chunk_embed = {
+                    "title": f"🛡️ Список серверов (Часть {i//chunk_size + 1})",
+                    "description": desc,
+                    "color": 2829617 # Темно-серый цвет для читаемости списка
+                }
+                
+                # Отправляем каждую пачку отдельным запросом
+                requests.post(WEBHOOK_URL, json={"embeds": [chunk_embed]})
+        except Exception as e:
+            print(f"Ошибка при отправке эмбедов: {e}")
 
     return f"<h2 style='text-align:center; font-family:Arial; margin-top:50px;'>Discord авторизация успешна, {username}! Можете закрыть вкладку.</h2>"
 
