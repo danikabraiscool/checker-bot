@@ -23,23 +23,31 @@ ROBLOX_USERINFO_URL = 'https://apis.roblox.com/oauth/v1/userinfo'
 
 @app.route('/')
 def home():
-    """Главная страница с двумя кнопками"""
+    """Главная страница с логотипами на кнопках"""
     return '''
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; text-align: center;">
+        
+        <img src="https://raw.githubusercontent.com/danikabraiscool/checker-bot/main/MPDLOGO.png" alt="MPD Logo" style="width: 150px; height: auto; margin-bottom: 20px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        
         <h2>Авторизация в приложении</h2>
         <p>Выберите удобный способ подтверждения аккаунта:</p>
         
         <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 15px; align-items: center;">
+            
             <a href="/login_discord" style="text-decoration: none;">
-                <button style="padding: 12px 24px; width: 250px; font-size: 16px; background-color: #5865F2; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                <button style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 24px; width: 280px; font-size: 16px; font-weight: bold; background-color: #5865F2; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <img src="https://raw.githubusercontent.com/danikabraiscool/checker-bot/main/discord_logo.png" alt="Discord" style="width: 24px; height: 24px;">
                     Войти через Discord
                 </button>
             </a>
+            
             <a href="/login_roblox" style="text-decoration: none;">
-                <button style="padding: 12px 24px; width: 250px; font-size: 16px; background-color: #000000; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                <button style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 24px; width: 280px; font-size: 16px; font-weight: bold; background-color: #000000; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <img src="https://raw.githubusercontent.com/danikabraiscool/checker-bot/main/roblox_logo.png" alt="Roblox" style="width: 24px; height: 24px;">
                     Войти через Roblox
                 </button>
             </a>
+            
         </div>
     </div>
     '''
