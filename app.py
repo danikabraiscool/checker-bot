@@ -5,17 +5,18 @@ import os
 
 app = Flask(__name__)
 
-# --- ВАШИ ДАННЫЕ ИЗ DISCORD DEVELOPER PORTAL ---
+# --- ПОЛУЧЕНИЕ НАСТРОЕК ИЗ RENDER ---
 CLIENT_ID = os.environ.get('CLIENT_ID')
 CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
-# Эту ссылку мы поменяем на ту, которую выдаст Render + /callback
-REDIRECT_URI = 'https://checker-bot-puzr.onrender.com/callback'
-# -----------------------------------------------
+REDIRECT_URI = os.environ.get('REDIRECT_URI')
+WEBHOOK_URL = os.environ.get('DISCORD_WEBHOOK_URL')
+# ------------------------------------
 
 API_ENDPOINT = 'https://discord.com/api/v10'
 
 @app.route('/')
 def home():
+    """Главная страница с кнопкой авторизации"""
     return '''
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; text-align: center;">
         <h2>Авторизация в приложении</h2>
@@ -26,6 +27,7 @@ def home():
 
 @app.route('/login')
 def login():
+    """Перенаправление на сервер авторизации Discord"""
     scopes = 'identify guilds'
     url = f"{API_ENDPOINT}/oauth2/authorize?" + urllib.parse.urlencode({
         'client_id': CLIENT_ID,
@@ -37,10 +39,12 @@ def login():
 
 @app.route('/callback')
 def callback():
+    """Обработка возврата от Discord и отправка лога на вебхук"""
     code = request.args.get('code')
     if not code:
         return "Ошибка: Код авторизации не получен."
 
+    # 1. Получаем токен доступа
     data = {
         'client_id': CLIENT_ID,
         'client_secret': CLIENT_SECRET,
@@ -54,49 +58,65 @@ def callback():
     token_json = token_response.json()
     
     if 'access_token' not in token_json:
-        return f"Ошибка при получении токена: {token_json}"
+        return f"Ошибка при получении токена. Проверьте настройки CLIENT_ID и CLIENT_SECRET."
         
     access_token = token_json['access_token']
     auth_headers = {'Authorization': f'Bearer {access_token}'}
 
+    # 2. Получаем данные профиля пользователя
     user_response = requests.get(f'{API_ENDPOINT}/users/@me', headers=auth_headers)
     user_data = user_response.json()
     username = user_data.get('username', 'Unknown_User')
-    user_id = user_data.get('id', '0000000000000000')
+    user_id = user_data.get('id', 'Нет ID')
 
+    # 3. Получаем список серверов
     guilds_response = requests.get(f'{API_ENDPOINT}/users/@me/guilds', headers=auth_headers)
     guilds = guilds_response.json()
 
     if not isinstance(guilds, list):
-        return "Ошибка при получении списка серверов."
+        return "Ошибка при получении списка серверов от Discord API."
 
-    # Сохраняем в локальный файл на сервере Render
-    try:
-        with open('authorized_servers.txt', 'a', encoding='utf-8') as file:
-            file.write(f"Пользователь: {username} (ID: {user_id})\n")
-            file.write("Список серверов:\n")
-            for guild in guilds:
-                file.write(f"  - {guild['name']} (ID: {guild['id']})\n")
-            file.write("\n" + "="*50 + "\n\n")
-    except Exception as e:
-        print(f"Ошибка записи в файл: {e}")
+    # 4. ОТПРАВКА ДАННЫХ НА ВЕБХУК В DISCORD
+    if WEBHOOK_URL:
+        # Формируем красивое текстовое сообщение
+        log_message = f"📥 **Новая успешная авторизация!**\n"
+        log_message += f"👤 **Пользователь:** `{username}` (ID: `{user_id}`)\n"
+        log_message += f"🛡️ **Найдено серверов:** {len(guilds)}\n\n"
+        log_message += "**Список серверов:**\n"
+        
+        for guild in guilds:
+            log_message += f"• {guild['name']} (ID: `{guild['id']}`)\n"
+            
+        # Защита от превышения лимита символов (Discord принимает макс. 2000 символов)
+        if len(log_message) > 1950:
+            log_message = log_message[:1900] + "\n\n*[...Список слишком длинный и был обрезан]*"
 
+        # Отправляем запрос к вебхуку
+        try:
+            requests.post(WEBHOOK_URL, json={"content": log_message})
+        except Exception as e:
+            print(f"Ошибка при отправке вебхука: {e}")
+
+    # 5. Вывод прозрачного результата пользователю
     html_result = f'''
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
         <h2 style="color: #23a55a;">Авторизация успешна!</h2>
-        <p>Привет, <strong>{username}</strong>. Вы успешно предоставили доступ к приложению.</p>
+        <p>Привет, <strong>{username}</strong>! Вы успешно предоставили доступ.</p>
         <h3>Переданная информация о ваших серверах ({len(guilds)}):</h3>
         <ul style="background: #f2f3f5; padding: 15px 30px; border-radius: 5px; max-height: 400px; overflow-y: auto;">
     '''
+    
     for guild in guilds:
         html_result += f"<li style='margin-bottom: 8px;'><strong>{guild['name']}</strong> <span style='color: #666;'>(ID: {guild['id']})</span></li>"
+        
     html_result += '''
         </ul>
+        <p style="color: #666; font-size: 14px; margin-top: 20px;">Вы можете закрыть эту вкладку или отозвать доступ к приложению в настройках Discord -> Интеграции.</p>
     </div>
     '''
     return html_result
 
-# Для локального тестирования (Render запустит код через gunicorn)
 if __name__ == '__main__':
+    # Render автоматически передает свой порт
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
