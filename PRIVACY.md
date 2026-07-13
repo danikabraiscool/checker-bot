@@ -1,30 +1,30 @@
-# Политика конфиденциальности (Privacy Policy)
+# Privacy Policy
 
-**Последнее обновление:** 13 Июля 2026
+**Last Updated:** July 13, 2026
 
-Данная Политика конфиденциальности описывает, как приложение **GOIDA CHECKER** собирает, использует и защищает вашу информацию при использовании наших услуг авторизации (OAuth2).
+This Privacy Policy describes how the **MPD VERIFICATION** application collects, uses, and protects your information when you use our authorization services (OAuth2).
 
-## 1. Какую информацию мы собираем
-При авторизации через наше приложение мы можем запрашивать доступ к следующим данным:
-* **Discord:** Базовая информация профиля (Имя пользователя, ID) и список серверов (Guilds), на которых вы находитесь.
-* **Roblox:** Базовая информация профиля (Никнейм, ID аккаунта, ссылка на публичный профиль).
+## 1. Information We Collect
+When you authorize through our application, we may request access to the following data:
+* **Discord:** Basic profile information (Username, ID) and the list of servers (Guilds) you are a member of.
+* **Roblox:** Basic profile information (Username, Account ID, public profile link).
 
-## 2. Как мы используем вашу информацию
-Собранные данные используются исключительно в целях:
-* Верификации вашей личности для предоставления доступа к закрытым сообществам или серверам.
-* Логирования факта успешного прохождения проверки.
+## 2. How We Use Your Information
+The collected data is used strictly for the following purposes:
+* Verifying your identity to grant access to closed communities or servers.
+* Logging the successful completion of the verification process.
 
-## 3. Хранение данных
-Мы **не храним** ваши данные в базах данных или локальных файлах на постоянной основе. Собранная информация транслируется администратору проекта напрямую в защищенный приватный канал Discord посредством технологии Webhook.
+## 3. Data Storage
+We do **not** store your data in databases or local files permanently. The collected information is transmitted directly to the project administrator into a secure, private Discord channel via Webhook technology. 
 
-## 4. Передача данных третьим лицам
-Мы не продаем, не обмениваем и не передаем вашу личную информацию сторонним компаниям или третьим лицам.
+## 4. Third-Party Sharing
+We do not sell, trade, or transfer your personal information to outside companies or third parties.
 
-## 5. Ваш контроль над данными
-Вы можете в любой момент отозвать доступ нашего приложения к вашим данным:
-* **Discord:** Настройки пользователя -> Интеграции -> Авторизованные приложения -> Нажать "Деавторизовать".
-* **Roblox:** Настройки аккаунта -> App Permissions -> Отменить доступ.
-Для запроса на удаление истории ваших логов свяжитесь с разработчиком.
+## 5. Your Control Over Data
+You can revoke our application's access to your data at any time:
+* **Discord:** User Settings -> Integrations -> Authorized Apps -> Click "Deauthorize".
+* **Roblox:** Account Settings -> App Permissions -> Revoke access.
+To request the deletion of your verification logs, please contact the developer.
 
-## 6. Контакты
-Если у вас есть вопросы по поводу этой Политики конфиденциальности, свяжитесь со мной в Discord: **@dimangoose**
+## 6. Contact
+If you have any questions regarding this Privacy Policy, please contact me on Discord: **@dimangoose**
