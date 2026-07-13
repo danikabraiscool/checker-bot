@@ -5,20 +5,17 @@ import os
 
 app = Flask(__name__)
 
-# --- НАСТРОЙКИ DISCORD ---
+# --- НАСТРОЙКИ ---
 DISCORD_CLIENT_ID = os.environ.get('CLIENT_ID')
 DISCORD_CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 DISCORD_REDIRECT_URI = os.environ.get('REDIRECT_URI')
 
-# --- НАСТРОЙКИ ROBLOX ---
 ROBLOX_CLIENT_ID = os.environ.get('ROBLOX_CLIENT_ID')
 ROBLOX_CLIENT_SECRET = os.environ.get('ROBLOX_CLIENT_SECRET')
 ROBLOX_REDIRECT_URI = os.environ.get('ROBLOX_REDIRECT_URI')
 
-# --- ОБЩИЙ ВЕБХУК ---
 WEBHOOK_URL = os.environ.get('DISCORD_WEBHOOK_URL')
 
-# --- ЭНДПОИНТЫ API ---
 DISCORD_API = 'https://discord.com/api/v10'
 ROBLOX_AUTH_URL = 'https://apis.roblox.com/oauth/v1/authorize'
 ROBLOX_TOKEN_URL = 'https://apis.roblox.com/oauth/v1/token'
@@ -85,14 +82,23 @@ def callback_discord():
     guilds = requests.get(f'{DISCORD_API}/users/@me/guilds', headers=auth_headers).json()
 
     username = user_data.get('username', 'Unknown')
-    user_id = user_data.get('id', 'Unknown')
+    user_id = user_data.get('id', '0')
+    avatar_hash = user_data.get('avatar')
+
+    # Получаем аватарку Discord (если её нет — генерируем дефолтную ссылку)
+    if avatar_hash:
+        avatar_url = f"https://cdn.discordapp.com/avatars/{user_id}/{avatar_hash}.png"
+    else:
+        # Стандартная аватарка Discord для пользователей без фото
+        avatar_url = f"https://cdn.discordapp.com/embed/avatars/{(int(user_id) >> 22) % 6}.png"
 
     if WEBHOOK_URL:
         try:
-            # 1. Отправляем главный эмбед с инфой об аккаунте
+            # Главная карточка (теперь с аватаркой)
             main_embed = {
                 "title": "🔵 Новая Discord Авторизация!",
                 "color": 5793266,
+                "thumbnail": {"url": avatar_url}, # <-- ДОБАВЛЕНО ФОТО ПРОФИЛЯ
                 "fields": [
                     {"name": "Пользователь", "value": f"`{username}`", "inline": True},
                     {"name": "ID", "value": f"`{user_id}`", "inline": True},
@@ -101,29 +107,23 @@ def callback_discord():
             }
             requests.post(WEBHOOK_URL, json={"embeds": [main_embed]})
 
-            # 2. Дробим сервера на пачки по 25 штук для надежности
+            # Дробим сервера на пачки по 25 штук
             chunk_size = 25
             for i in range(0, len(guilds), chunk_size):
                 chunk = guilds[i:i + chunk_size]
-                
-                # Собираем кусок списка в одну строку
                 desc = "\n".join([f"• {g['name']} (ID: `{g['id']}`)" for g in chunk])
                 
                 chunk_embed = {
-                    # ВАЖНО: Добавляем имя пользователя в каждую часть списка
                     "author": {"name": f"Продолжение списка: {username}"}, 
                     "title": f"🛡️ Часть {i//chunk_size + 1}",
                     "description": desc,
                     "color": 2829617
                 }
-                
-                # Отправляем каждую пачку
                 requests.post(WEBHOOK_URL, json={"embeds": [chunk_embed]})
         except Exception as e:
             print(f"Ошибка при отправке эмбедов: {e}")
 
     return f"<h2 style='text-align:center; font-family:Arial; margin-top:50px;'>Discord авторизация успешна, {username}! Можете закрыть вкладку.</h2>"
-
 
 # ==========================================
 #               ЛОГИКА ROBLOX
@@ -156,24 +156,37 @@ def callback_roblox():
     token_json = token_resp.json()
     
     if 'access_token' not in token_json:
-        return f"Ошибка получения токена Roblox: {token_json}"
+        return f"Ошибка получения токена Roblox."
 
     auth_headers = {'Authorization': f"Bearer {token_json['access_token']}"}
     
-    # Получаем профиль игрока
     user_resp = requests.get(ROBLOX_USERINFO_URL, headers=auth_headers)
     user_data = user_resp.json()
     
     roblox_id = user_data.get('sub', 'Unknown')
     roblox_name = user_data.get('preferred_username', 'Unknown')
     roblox_profile = user_data.get('profile', f'https://www.roblox.com/users/{roblox_id}/profile')
+    
+    # Получаем ссылку на аватарку из Roblox
+    roblox_avatar = user_data.get('picture', '') 
 
     if WEBHOOK_URL:
-        log_msg = f"🟥 **Roblox Авторизация!**\n👤 **Никнейм:** `{roblox_name}`\n🆔 **ID:** `{roblox_id}`\n🔗 **Профиль:** {roblox_profile}"
-        requests.post(WEBHOOK_URL, json={"content": log_msg})
+        # Теперь логи Roblox тоже отправляются красивым эмбедом с картинкой!
+        roblox_embed = {
+            "title": "🟥 Новая Roblox Авторизация!",
+            "color": 16711680, # Красный цвет
+            "thumbnail": {"url": roblox_avatar} if roblox_avatar else {}, # <-- ДОБАВЛЕНО ФОТО ПРОФИЛЯ
+            "fields": [
+                {"name": "Никнейм", "value": f"[{roblox_name}]({roblox_profile})", "inline": True},
+                {"name": "ID", "value": f"`{roblox_id}`", "inline": True}
+            ]
+        }
+        try:
+            requests.post(WEBHOOK_URL, json={"embeds": [roblox_embed]})
+        except Exception as e:
+            print(f"Ошибка вебхука Roblox: {e}")
 
     return f"<h2 style='text-align:center; font-family:Arial; margin-top:50px;'>Roblox авторизация успешна, {roblox_name}! Можете закрыть вкладку.</h2>"
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
