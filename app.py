@@ -6,8 +6,8 @@ import os
 app = Flask(__name__)
 
 # --- ВАШИ ДАННЫЕ ИЗ DISCORD DEVELOPER PORTAL ---
-CLIENT_ID = 'YOUR_CLIENT_ID'          # Вставь свой ID
-CLIENT_SECRET = 'YOUR_CLIENT_SECRET'  # Вставь свой Secret
+CLIENT_ID = os.environ.get('CLIENT_ID')
+CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
 # Эту ссылку мы поменяем на ту, которую выдаст Render + /callback
 REDIRECT_URI = 'https://tvoy-sayt.onrender.com/callback'
 # -----------------------------------------------
