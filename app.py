@@ -23,7 +23,7 @@ ROBLOX_USERINFO_URL = 'https://apis.roblox.com/oauth/v1/userinfo'
 
 @app.route('/')
 def home():
-    """Главная страница с логотипами на кнопках"""
+    """Главная страница с логотипами, кнопками и документами"""
     return '''
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; text-align: center;">
         
@@ -49,6 +49,16 @@ def home():
             </a>
             
         </div>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888;">
+            <p style="margin-bottom: 10px;">Продолжая, вы соглашаетесь с правилами сервиса:</p>
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <a href="https://github.com/danikabraiscool/checker-bot/blob/main/TERMS.md" target="_blank" style="color: #5865F2; text-decoration: none;">Пользовательское соглашение</a>
+                <span style="color: #ccc;">|</span>
+                <a href="https://github.com/danikabraiscool/checker-bot/blob/main/PRIVACY.md" target="_blank" style="color: #5865F2; text-decoration: none;">Политика конфиденциальности</a>
+            </div>
+        </div>
+        
     </div>
     '''
 
