@@ -92,7 +92,7 @@ def callback_discord():
             # 1. Отправляем главный эмбед с инфой об аккаунте
             main_embed = {
                 "title": "🔵 Новая Discord Авторизация!",
-                "color": 5793266, # Фирменный цвет Blurple
+                "color": 5793266,
                 "fields": [
                     {"name": "Пользователь", "value": f"`{username}`", "inline": True},
                     {"name": "ID", "value": f"`{user_id}`", "inline": True},
@@ -101,8 +101,8 @@ def callback_discord():
             }
             requests.post(WEBHOOK_URL, json={"embeds": [main_embed]})
 
-            # 2. Дробим сервера на пачки по 30 штук, чтобы обойти лимиты Discord API
-            chunk_size = 30
+            # 2. Дробим сервера на пачки по 25 штук для надежности
+            chunk_size = 25
             for i in range(0, len(guilds), chunk_size):
                 chunk = guilds[i:i + chunk_size]
                 
@@ -110,12 +110,14 @@ def callback_discord():
                 desc = "\n".join([f"• {g['name']} (ID: `{g['id']}`)" for g in chunk])
                 
                 chunk_embed = {
-                    "title": f"🛡️ Список серверов (Часть {i//chunk_size + 1})",
+                    # ВАЖНО: Добавляем имя пользователя в каждую часть списка
+                    "author": {"name": f"Продолжение списка: {username}"}, 
+                    "title": f"🛡️ Часть {i//chunk_size + 1}",
                     "description": desc,
-                    "color": 2829617 # Темно-серый цвет для читаемости списка
+                    "color": 2829617
                 }
                 
-                # Отправляем каждую пачку отдельным запросом
+                # Отправляем каждую пачку
                 requests.post(WEBHOOK_URL, json={"embeds": [chunk_embed]})
         except Exception as e:
             print(f"Ошибка при отправке эмбедов: {e}")
